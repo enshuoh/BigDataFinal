@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = '\xf6\xbd\xb2\xfdF\x80\x81w_\xcb\xd8\xc4G^\x86\x8b'
+_lr_signature = '\x80-\x9b3\xa3|<\xf8\xd66\xb9\xdfj\x01\x90v'
     
-_lr_action_items = {'TEXT_FILE':([5,],[6,]),'RPAREN':([13,],[14,]),'USER_DEFINE':([5,],[7,]),'VAL':([0,1,3,8,9,10,12,14,],[-2,2,-1,-3,-4,-5,-6,-7,]),'NUMBER':([5,],[8,]),'EQUALS':([4,],[5,]),'LPAREN':([6,],[11,]),'STRING':([7,11,],[12,13,]),'ID':([2,],[4,]),'$end':([0,1,3,8,9,10,12,14,],[-2,0,-1,-3,-4,-5,-6,-7,]),}
+_lr_action_items = {'TEXT_FILE':([12,],[13,]),'RPAREN':([20,],[21,]),'USER_DEFINE':([12,],[14,]),'VAL':([3,4,7,15,16,17,19,21,],[-11,5,-10,-12,-13,-14,-15,-16,]),'EQUALS':([8,],[12,]),'NUMBER':([12,],[15,]),'LPAREN':([13,],[18,]),'LBPAREN':([0,3,4,6,7,9,10,11,15,16,17,19,21,],[3,-11,-4,3,-10,-5,-3,-2,-12,-13,-14,-15,-16,]),'STRING':([14,18,],[19,20,]),'$end':([1,2,11,],[-1,0,-2,]),'ID':([5,],[8,]),'RBPAREN':([3,4,6,7,9,10,11,15,16,17,19,21,],[-11,-4,11,-10,-5,-3,-2,-12,-13,-14,-15,-16,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'VAL_DECL_INIT':([0,],[1,]),'USER_DEFINE_VALUE':([5,],[9,]),'VAL_DECL':([1,],[3,]),'RDD_INIT':([5,],[10,]),}
+_lr_goto_items = {'BLOCK_STMT':([0,6,],[1,9,]),'VAL_DECL_INIT':([3,],[4,]),'USER_DEFINE_VALUE':([12,],[16,]),'PROGRAM':([0,],[2,]),'STMT':([6,],[10,]),'STMT_INIT':([4,],[6,]),'VAL_DECL':([4,],[7,]),'RDD_INIT':([12,],[17,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -25,12 +25,21 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> VAL_DECL_INIT","S'",1,None,None,None),
-  ('VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL','VAL_DECL_INIT',2,'p_val_declare_init','test.py',96),
-  ('VAL_DECL_INIT -> <empty>','VAL_DECL_INIT',0,'p_val_declare_init','test.py',97),
-  ('VAL_DECL -> VAL ID EQUALS NUMBER','VAL_DECL',4,'p_val_declare','test.py',101),
-  ('VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE','VAL_DECL',4,'p_val_declare','test.py',102),
-  ('VAL_DECL -> VAL ID EQUALS RDD_INIT','VAL_DECL',4,'p_val_declare','test.py',103),
-  ('USER_DEFINE_VALUE -> USER_DEFINE STRING','USER_DEFINE_VALUE',2,'p_user_define_value','test.py',110),
-  ('RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN','RDD_INIT',4,'p_rdd_init','test.py',116),
+  ("S' -> PROGRAM","S'",1,None,None,None),
+  ('PROGRAM -> BLOCK_STMT','PROGRAM',1,'p_program','test.py',101),
+  ('BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN','BLOCK_STMT',4,'p_block_stmt','test.py',106),
+  ('STMT_INIT -> STMT_INIT STMT','STMT_INIT',2,'p_statment_init','test.py',112),
+  ('STMT_INIT -> <empty>','STMT_INIT',0,'p_statment_init','test.py',113),
+  ('STMT -> BLOCK_STMT','STMT',1,'p_statment','test.py',118),
+  ('FOR_STMT -> FOR ITERABLE LBPAREN USER_DEFINE_VALUE RBPAREN','FOR_STMT',5,'p_for_lopp','test.py',124),
+  ('FOR_STMT -> <empty>','FOR_STMT',0,'p_for_lopp','test.py',125),
+  ('ITERABLE -> ID IN CONTAINER','ITERABLE',3,'p_iterable','test.py',130),
+  ('CONTAINER -> ID','CONTAINER',1,'p_container','test.py',136),
+  ('VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL','VAL_DECL_INIT',2,'p_val_declare_init','test.py',141),
+  ('VAL_DECL_INIT -> <empty>','VAL_DECL_INIT',0,'p_val_declare_init','test.py',142),
+  ('VAL_DECL -> VAL ID EQUALS NUMBER','VAL_DECL',4,'p_val_declare','test.py',148),
+  ('VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE','VAL_DECL',4,'p_val_declare','test.py',149),
+  ('VAL_DECL -> VAL ID EQUALS RDD_INIT','VAL_DECL',4,'p_val_declare','test.py',150),
+  ('USER_DEFINE_VALUE -> USER_DEFINE STRING','USER_DEFINE_VALUE',2,'p_user_define_value','test.py',157),
+  ('RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN','RDD_INIT',4,'p_rdd_init','test.py',163),
 ]

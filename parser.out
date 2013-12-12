@@ -18,178 +18,272 @@ Unused terminals:
 
 Grammar
 
-Rule 0     S' -> VAL_DECL_INIT
-Rule 1     VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL
-Rule 2     VAL_DECL_INIT -> <empty>
-Rule 3     VAL_DECL -> VAL ID EQUALS NUMBER
-Rule 4     VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE
-Rule 5     VAL_DECL -> VAL ID EQUALS RDD_INIT
-Rule 6     USER_DEFINE_VALUE -> USER_DEFINE STRING
-Rule 7     RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN
+Rule 0     S' -> PROGRAM
+Rule 1     PROGRAM -> BLOCK_STMT
+Rule 2     BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN
+Rule 3     STMT_INIT -> STMT_INIT STMT
+Rule 4     STMT_INIT -> <empty>
+Rule 5     STMT -> BLOCK_STMT
+Rule 6     FOR_STMT -> FOR ITERABLE LBPAREN USER_DEFINE_VALUE RBPAREN
+Rule 7     FOR_STMT -> <empty>
+Rule 8     ITERABLE -> ID IN CONTAINER
+Rule 9     CONTAINER -> ID
+Rule 10    VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL
+Rule 11    VAL_DECL_INIT -> <empty>
+Rule 12    VAL_DECL -> VAL ID EQUALS NUMBER
+Rule 13    VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE
+Rule 14    VAL_DECL -> VAL ID EQUALS RDD_INIT
+Rule 15    USER_DEFINE_VALUE -> USER_DEFINE STRING
+Rule 16    RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN
 
 Terminals, with rules where they appear
 
 DIVIDE               : 
 DOT                  : 
 ELSE                 : 
-EQUALS               : 3 4 5
-ID                   : 3 4 5
+EQUALS               : 12 13 14
+FOR                  : 6
+ID                   : 8 9 12 13 14
 IF                   : 
-LPAREN               : 7
+IN                   : 8
+LBPAREN              : 2 6
+LPAREN               : 16
 MINUS                : 
 NEW                  : 
-NUMBER               : 3
+NUMBER               : 12
 OBJECT               : 
 PLUS                 : 
-RPAREN               : 7
+RBPAREN              : 2 6
+RPAREN               : 16
 SEQUENCE_FILE        : 
-STRING               : 6 7
-TEXT_FILE            : 7
+STRING               : 15 16
+TEXT_FILE            : 16
 THEN                 : 
 TIMES                : 
 TO                   : 
-USER_DEFINE          : 6
-VAL                  : 3 4 5
+USER_DEFINE          : 15
+VAL                  : 12 13 14
 WHILE                : 
 error                : 
 
 Nonterminals, with rules where they appear
 
-RDD_INIT             : 5
-USER_DEFINE_VALUE    : 4
-VAL_DECL             : 1
-VAL_DECL_INIT        : 1 0
+BLOCK_STMT           : 1 5
+CONTAINER            : 8
+FOR_STMT             : 
+ITERABLE             : 6
+PROGRAM              : 0
+RDD_INIT             : 14
+STMT                 : 3
+STMT_INIT            : 2 3
+USER_DEFINE_VALUE    : 6 13
+VAL_DECL             : 10
+VAL_DECL_INIT        : 2 10
 
 Parsing method: LALR
 
 state 0
 
-    (0) S' -> . VAL_DECL_INIT
-    (1) VAL_DECL_INIT -> . VAL_DECL_INIT VAL_DECL
-    (2) VAL_DECL_INIT -> .
+    (0) S' -> . PROGRAM
+    (1) PROGRAM -> . BLOCK_STMT
+    (2) BLOCK_STMT -> . LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN
 
-    VAL             reduce using rule 2 (VAL_DECL_INIT -> .)
-    $end            reduce using rule 2 (VAL_DECL_INIT -> .)
+    LBPAREN         shift and go to state 3
 
-    VAL_DECL_INIT                  shift and go to state 1
+    PROGRAM                        shift and go to state 2
+    BLOCK_STMT                     shift and go to state 1
 
 state 1
 
-    (0) S' -> VAL_DECL_INIT .
-    (1) VAL_DECL_INIT -> VAL_DECL_INIT . VAL_DECL
-    (3) VAL_DECL -> . VAL ID EQUALS NUMBER
-    (4) VAL_DECL -> . VAL ID EQUALS USER_DEFINE_VALUE
-    (5) VAL_DECL -> . VAL ID EQUALS RDD_INIT
+    (1) PROGRAM -> BLOCK_STMT .
 
-    VAL             shift and go to state 2
+    $end            reduce using rule 1 (PROGRAM -> BLOCK_STMT .)
 
-    VAL_DECL                       shift and go to state 3
 
 state 2
 
-    (3) VAL_DECL -> VAL . ID EQUALS NUMBER
-    (4) VAL_DECL -> VAL . ID EQUALS USER_DEFINE_VALUE
-    (5) VAL_DECL -> VAL . ID EQUALS RDD_INIT
+    (0) S' -> PROGRAM .
 
-    ID              shift and go to state 4
 
 
 state 3
 
-    (1) VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .
+    (2) BLOCK_STMT -> LBPAREN . VAL_DECL_INIT STMT_INIT RBPAREN
+    (10) VAL_DECL_INIT -> . VAL_DECL_INIT VAL_DECL
+    (11) VAL_DECL_INIT -> .
 
-    VAL             reduce using rule 1 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
-    $end            reduce using rule 1 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
+    VAL             reduce using rule 11 (VAL_DECL_INIT -> .)
+    RBPAREN         reduce using rule 11 (VAL_DECL_INIT -> .)
+    LBPAREN         reduce using rule 11 (VAL_DECL_INIT -> .)
 
+    VAL_DECL_INIT                  shift and go to state 4
 
 state 4
 
-    (3) VAL_DECL -> VAL ID . EQUALS NUMBER
-    (4) VAL_DECL -> VAL ID . EQUALS USER_DEFINE_VALUE
-    (5) VAL_DECL -> VAL ID . EQUALS RDD_INIT
+    (2) BLOCK_STMT -> LBPAREN VAL_DECL_INIT . STMT_INIT RBPAREN
+    (10) VAL_DECL_INIT -> VAL_DECL_INIT . VAL_DECL
+    (3) STMT_INIT -> . STMT_INIT STMT
+    (4) STMT_INIT -> .
+    (12) VAL_DECL -> . VAL ID EQUALS NUMBER
+    (13) VAL_DECL -> . VAL ID EQUALS USER_DEFINE_VALUE
+    (14) VAL_DECL -> . VAL ID EQUALS RDD_INIT
 
-    EQUALS          shift and go to state 5
+    RBPAREN         reduce using rule 4 (STMT_INIT -> .)
+    LBPAREN         reduce using rule 4 (STMT_INIT -> .)
+    VAL             shift and go to state 5
 
+    STMT_INIT                      shift and go to state 6
+    VAL_DECL                       shift and go to state 7
 
 state 5
 
-    (3) VAL_DECL -> VAL ID EQUALS . NUMBER
-    (4) VAL_DECL -> VAL ID EQUALS . USER_DEFINE_VALUE
-    (5) VAL_DECL -> VAL ID EQUALS . RDD_INIT
-    (6) USER_DEFINE_VALUE -> . USER_DEFINE STRING
-    (7) RDD_INIT -> . TEXT_FILE LPAREN STRING RPAREN
+    (12) VAL_DECL -> VAL . ID EQUALS NUMBER
+    (13) VAL_DECL -> VAL . ID EQUALS USER_DEFINE_VALUE
+    (14) VAL_DECL -> VAL . ID EQUALS RDD_INIT
 
-    NUMBER          shift and go to state 8
-    USER_DEFINE     shift and go to state 7
-    TEXT_FILE       shift and go to state 6
+    ID              shift and go to state 8
 
-    USER_DEFINE_VALUE              shift and go to state 9
-    RDD_INIT                       shift and go to state 10
 
 state 6
 
-    (7) RDD_INIT -> TEXT_FILE . LPAREN STRING RPAREN
+    (2) BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT . RBPAREN
+    (3) STMT_INIT -> STMT_INIT . STMT
+    (5) STMT -> . BLOCK_STMT
+    (2) BLOCK_STMT -> . LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN
 
-    LPAREN          shift and go to state 11
+    RBPAREN         shift and go to state 11
+    LBPAREN         shift and go to state 3
 
+    BLOCK_STMT                     shift and go to state 9
+    STMT                           shift and go to state 10
 
 state 7
 
-    (6) USER_DEFINE_VALUE -> USER_DEFINE . STRING
+    (10) VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .
 
-    STRING          shift and go to state 12
+    VAL             reduce using rule 10 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
+    RBPAREN         reduce using rule 10 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
+    LBPAREN         reduce using rule 10 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
 
 
 state 8
 
-    (3) VAL_DECL -> VAL ID EQUALS NUMBER .
+    (12) VAL_DECL -> VAL ID . EQUALS NUMBER
+    (13) VAL_DECL -> VAL ID . EQUALS USER_DEFINE_VALUE
+    (14) VAL_DECL -> VAL ID . EQUALS RDD_INIT
 
-    VAL             reduce using rule 3 (VAL_DECL -> VAL ID EQUALS NUMBER .)
-    $end            reduce using rule 3 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+    EQUALS          shift and go to state 12
 
 
 state 9
 
-    (4) VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .
+    (5) STMT -> BLOCK_STMT .
 
-    VAL             reduce using rule 4 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
-    $end            reduce using rule 4 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+    RBPAREN         reduce using rule 5 (STMT -> BLOCK_STMT .)
+    LBPAREN         reduce using rule 5 (STMT -> BLOCK_STMT .)
 
 
 state 10
 
-    (5) VAL_DECL -> VAL ID EQUALS RDD_INIT .
+    (3) STMT_INIT -> STMT_INIT STMT .
 
-    VAL             reduce using rule 5 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
-    $end            reduce using rule 5 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+    RBPAREN         reduce using rule 3 (STMT_INIT -> STMT_INIT STMT .)
+    LBPAREN         reduce using rule 3 (STMT_INIT -> STMT_INIT STMT .)
 
 
 state 11
 
-    (7) RDD_INIT -> TEXT_FILE LPAREN . STRING RPAREN
+    (2) BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN .
 
-    STRING          shift and go to state 13
+    $end            reduce using rule 2 (BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN .)
+    RBPAREN         reduce using rule 2 (BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN .)
+    LBPAREN         reduce using rule 2 (BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN .)
 
 
 state 12
 
-    (6) USER_DEFINE_VALUE -> USER_DEFINE STRING .
+    (12) VAL_DECL -> VAL ID EQUALS . NUMBER
+    (13) VAL_DECL -> VAL ID EQUALS . USER_DEFINE_VALUE
+    (14) VAL_DECL -> VAL ID EQUALS . RDD_INIT
+    (15) USER_DEFINE_VALUE -> . USER_DEFINE STRING
+    (16) RDD_INIT -> . TEXT_FILE LPAREN STRING RPAREN
 
-    VAL             reduce using rule 6 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
-    $end            reduce using rule 6 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+    NUMBER          shift and go to state 15
+    USER_DEFINE     shift and go to state 14
+    TEXT_FILE       shift and go to state 13
 
+    USER_DEFINE_VALUE              shift and go to state 16
+    RDD_INIT                       shift and go to state 17
 
 state 13
 
-    (7) RDD_INIT -> TEXT_FILE LPAREN STRING . RPAREN
+    (16) RDD_INIT -> TEXT_FILE . LPAREN STRING RPAREN
 
-    RPAREN          shift and go to state 14
+    LPAREN          shift and go to state 18
 
 
 state 14
 
-    (7) RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .
+    (15) USER_DEFINE_VALUE -> USER_DEFINE . STRING
 
-    VAL             reduce using rule 7 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
-    $end            reduce using rule 7 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
+    STRING          shift and go to state 19
+
+
+state 15
+
+    (12) VAL_DECL -> VAL ID EQUALS NUMBER .
+
+    VAL             reduce using rule 12 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+    RBPAREN         reduce using rule 12 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+    LBPAREN         reduce using rule 12 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+
+
+state 16
+
+    (13) VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .
+
+    VAL             reduce using rule 13 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+    RBPAREN         reduce using rule 13 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+    LBPAREN         reduce using rule 13 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+
+
+state 17
+
+    (14) VAL_DECL -> VAL ID EQUALS RDD_INIT .
+
+    VAL             reduce using rule 14 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+    RBPAREN         reduce using rule 14 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+    LBPAREN         reduce using rule 14 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+
+
+state 18
+
+    (16) RDD_INIT -> TEXT_FILE LPAREN . STRING RPAREN
+
+    STRING          shift and go to state 20
+
+
+state 19
+
+    (15) USER_DEFINE_VALUE -> USER_DEFINE STRING .
+
+    VAL             reduce using rule 15 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+    RBPAREN         reduce using rule 15 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+    LBPAREN         reduce using rule 15 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+
+
+state 20
+
+    (16) RDD_INIT -> TEXT_FILE LPAREN STRING . RPAREN
+
+    RPAREN          shift and go to state 21
+
+
+state 21
+
+    (16) RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .
+
+    VAL             reduce using rule 16 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
+    RBPAREN         reduce using rule 16 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
+    LBPAREN         reduce using rule 16 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
 
