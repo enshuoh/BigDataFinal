@@ -1,0 +1,195 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    THEN
+    OBJECT
+    WHILE
+    NEW
+    MINUS
+    DOT
+    TO
+    PLUS
+    SEQUENCE_FILE
+    DIVIDE
+    TIMES
+    ELSE
+    IF
+
+Grammar
+
+Rule 0     S' -> VAL_DECL_INIT
+Rule 1     VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL
+Rule 2     VAL_DECL_INIT -> <empty>
+Rule 3     VAL_DECL -> VAL ID EQUALS NUMBER
+Rule 4     VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE
+Rule 5     VAL_DECL -> VAL ID EQUALS RDD_INIT
+Rule 6     USER_DEFINE_VALUE -> USER_DEFINE STRING
+Rule 7     RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN
+
+Terminals, with rules where they appear
+
+DIVIDE               : 
+DOT                  : 
+ELSE                 : 
+EQUALS               : 3 4 5
+ID                   : 3 4 5
+IF                   : 
+LPAREN               : 7
+MINUS                : 
+NEW                  : 
+NUMBER               : 3
+OBJECT               : 
+PLUS                 : 
+RPAREN               : 7
+SEQUENCE_FILE        : 
+STRING               : 6 7
+TEXT_FILE            : 7
+THEN                 : 
+TIMES                : 
+TO                   : 
+USER_DEFINE          : 6
+VAL                  : 3 4 5
+WHILE                : 
+error                : 
+
+Nonterminals, with rules where they appear
+
+RDD_INIT             : 5
+USER_DEFINE_VALUE    : 4
+VAL_DECL             : 1
+VAL_DECL_INIT        : 1 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . VAL_DECL_INIT
+    (1) VAL_DECL_INIT -> . VAL_DECL_INIT VAL_DECL
+    (2) VAL_DECL_INIT -> .
+
+    VAL             reduce using rule 2 (VAL_DECL_INIT -> .)
+    $end            reduce using rule 2 (VAL_DECL_INIT -> .)
+
+    VAL_DECL_INIT                  shift and go to state 1
+
+state 1
+
+    (0) S' -> VAL_DECL_INIT .
+    (1) VAL_DECL_INIT -> VAL_DECL_INIT . VAL_DECL
+    (3) VAL_DECL -> . VAL ID EQUALS NUMBER
+    (4) VAL_DECL -> . VAL ID EQUALS USER_DEFINE_VALUE
+    (5) VAL_DECL -> . VAL ID EQUALS RDD_INIT
+
+    VAL             shift and go to state 2
+
+    VAL_DECL                       shift and go to state 3
+
+state 2
+
+    (3) VAL_DECL -> VAL . ID EQUALS NUMBER
+    (4) VAL_DECL -> VAL . ID EQUALS USER_DEFINE_VALUE
+    (5) VAL_DECL -> VAL . ID EQUALS RDD_INIT
+
+    ID              shift and go to state 4
+
+
+state 3
+
+    (1) VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .
+
+    VAL             reduce using rule 1 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
+    $end            reduce using rule 1 (VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL .)
+
+
+state 4
+
+    (3) VAL_DECL -> VAL ID . EQUALS NUMBER
+    (4) VAL_DECL -> VAL ID . EQUALS USER_DEFINE_VALUE
+    (5) VAL_DECL -> VAL ID . EQUALS RDD_INIT
+
+    EQUALS          shift and go to state 5
+
+
+state 5
+
+    (3) VAL_DECL -> VAL ID EQUALS . NUMBER
+    (4) VAL_DECL -> VAL ID EQUALS . USER_DEFINE_VALUE
+    (5) VAL_DECL -> VAL ID EQUALS . RDD_INIT
+    (6) USER_DEFINE_VALUE -> . USER_DEFINE STRING
+    (7) RDD_INIT -> . TEXT_FILE LPAREN STRING RPAREN
+
+    NUMBER          shift and go to state 8
+    USER_DEFINE     shift and go to state 7
+    TEXT_FILE       shift and go to state 6
+
+    USER_DEFINE_VALUE              shift and go to state 9
+    RDD_INIT                       shift and go to state 10
+
+state 6
+
+    (7) RDD_INIT -> TEXT_FILE . LPAREN STRING RPAREN
+
+    LPAREN          shift and go to state 11
+
+
+state 7
+
+    (6) USER_DEFINE_VALUE -> USER_DEFINE . STRING
+
+    STRING          shift and go to state 12
+
+
+state 8
+
+    (3) VAL_DECL -> VAL ID EQUALS NUMBER .
+
+    VAL             reduce using rule 3 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+    $end            reduce using rule 3 (VAL_DECL -> VAL ID EQUALS NUMBER .)
+
+
+state 9
+
+    (4) VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .
+
+    VAL             reduce using rule 4 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+    $end            reduce using rule 4 (VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE .)
+
+
+state 10
+
+    (5) VAL_DECL -> VAL ID EQUALS RDD_INIT .
+
+    VAL             reduce using rule 5 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+    $end            reduce using rule 5 (VAL_DECL -> VAL ID EQUALS RDD_INIT .)
+
+
+state 11
+
+    (7) RDD_INIT -> TEXT_FILE LPAREN . STRING RPAREN
+
+    STRING          shift and go to state 13
+
+
+state 12
+
+    (6) USER_DEFINE_VALUE -> USER_DEFINE STRING .
+
+    VAL             reduce using rule 6 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+    $end            reduce using rule 6 (USER_DEFINE_VALUE -> USER_DEFINE STRING .)
+
+
+state 13
+
+    (7) RDD_INIT -> TEXT_FILE LPAREN STRING . RPAREN
+
+    RPAREN          shift and go to state 14
+
+
+state 14
+
+    (7) RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .
+
+    VAL             reduce using rule 7 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
+    $end            reduce using rule 7 (RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN .)
+
