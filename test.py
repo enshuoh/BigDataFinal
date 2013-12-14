@@ -18,7 +18,9 @@ tokens = [
     'ID','NUMBER',
     'PLUS','MINUS','TIMES','DIVIDE','EQUALS',
     'LPAREN','RPAREN',
-    'LBPAREN','RBPAREN',
+
+    'LBRACE',
+    'RBRACE',
 
 
     'TO',
@@ -38,8 +40,8 @@ t_DIVIDE  = r'/'
 t_EQUALS  = r'='
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
-t_LBPAREN  = r'\{'
-t_RBPAREN  = r'\}'
+t_LBRACE  = r'\{'
+t_RBRACE  = r'\}'
 t_NUMBER  = r'[-+]?\d*\.\d+|\d+'
 
 
@@ -90,104 +92,163 @@ while True:
     print tok
 #"""
 
-#test parser
+
+
+#===============================yacc========================================================
 #"""
 
 precedence = ( )
+
 # dictionary of names
 names = { }
-def p_program(t):
+
+
+
+
+
+class Scope:
+    def __init__(self,parent_scope):
+        self.parent_scope = parent_scope
+        self.id_table = {}
+        self.val_decl = []
+        self.stmt_init = []
+        self.code = ""
+    
+    def append_code(self,code):
+        self.code = self.code + code;
+
+
+now_scope = Scope(parent_scope = None)
+
+#to-do have to finish the scope structure
+#to-do change the VAL_DECL_INIT STMT_INIT mechanism
+
+
+def p_program(p):
     '''
     PROGRAM : BLOCK_STMT
     '''
-    print t[1]
-def p_block_stmt(t):
-    '''
-    BLOCK_STMT : LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN
-    '''
-    t[0] = '{\n' + ''.join(val_decl) +'\n' + ''.join(stmt_init) + '\n}\n'
+    print p[1]
 
-stmt_init = []
-def p_statment_init(t):
+def p_block_stmt(p):
+    '''
+    BLOCK_STMT : LBRACE enter_scope VAL_DECL_INIT STMT_INIT exit_scope RBRACE 
+    '''
+    p[0] = now_scope.code
+
+def p_statment_init(p):
     '''
     STMT_INIT : STMT_INIT STMT 
-              |
     '''
-    if len(t) > 1:
-        stmt_init.append(t[2])
+    now_scope.stmt_init.append(p[2])
 
-def p_statment(t):
+def p_statment_end(p):
+    '''
+    STMT_INIT : 
+    '''  
+
+def p_statment(p):
     '''
     STMT : BLOCK_STMT
     '''
-    t[0] = t[1]
+    p[0] = p[1]
 
-def p_for_lopp(t):
+def p_statment_for(p):
     '''
-    FOR_STMT : FOR ITERABLE LBPAREN USER_DEFINE_VALUE RBPAREN
-             |
+    STMT : FOR_STMT 
+    ''' 
+    p[0] = p[1]
+
+def p_for_stmt(p):
     '''
-    t[0] = 'for' + '( ' + t[2] + ' )' + '{\n' + t[4] + '\n}'
-def p_iterable(t):
+    FOR_STMT : FOR ITERABLE BLOCK_STMT
+    '''
+    p[0] = 'for' + '( ' + p[2] + ' )' + p[3]
+
+def p_enter_scope(p):
+    '''
+    enter_scope :
+    '''
+    global now_scope
+    now_scope = Scope(now_scope)
+
+def p_exit_scope(p):
+    '''
+    exit_scope :
+    '''
+    global now_scope
+    now_scope.code = '{\n' + ''.join(now_scope.val_decl) +'\n' + ''.join(now_scope.stmt_init) + '\n}\n'
+    code = now_scope.code
+    now_scope = now_scope.parent_scope
+    now_scope.append_code(code)
+
+def p_iterable(p):
     '''
     ITERABLE : ID IN CONTAINER
     '''
-    t[0] = t[1] + ' <- ' + t[3]
+    p[0] = p[1] + ' <- ' + p[3]
 
-def p_container(t):
+def p_container(p):
     '''
     CONTAINER : ID
     '''
-    t[0] = t[1]
+    p[0] = p[1]
 
-val_decl = []
 
-def p_val_declare_init(t):
+
+def p_val_declare_init(p):
     '''VAL_DECL_INIT : VAL_DECL_INIT VAL_DECL  
                      |
     '''
-    if len(t) > 1 :
-        val_decl.append(t[2]+'\n')
+    if len(p) > 1 :
+        now_scope.val_decl.append(p[2]+'\n')
 
-def p_val_declare(t):
+def p_val_declare(p):
     '''
     VAL_DECL : VAL ID EQUALS NUMBER
              | VAL ID EQUALS USER_DEFINE_VALUE
              | VAL ID EQUALS RDD_INIT
     '''
-    t[0] = "var "+t[2]+" = "+t[4]
-    names[len(names)+1] = t[2]
+    p[0] = "var "+p[2]+" = "+p[4]
 
-def p_user_define_value(t):
+def p_user_define_value(p):
     '''
     USER_DEFINE_VALUE : USER_DEFINE STRING
     '''
-    t[0] = t[2][1:-1]
+    p[0] = p[2][1:-1]
 
-def p_rdd_init(t):
+def p_rdd_init(p):
     '''
     RDD_INIT : TEXT_FILE LPAREN STRING RPAREN
     '''
-    t[0] = 'sc.textFile("%s")' % t[3][1:-1]
+    p[0] = 'sc.textFile("%s")' % p[3][1:-1]
 
-def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+def p_error(p):
+    print("Syntax error at '%s'" % p.value)
+
+
 
 import ply.yacc as yacc
 yacc.yacc()
+
 data = '''
 {
 val R = 1000
 val rand = user_define "new Random(42)"
 val lines = text_file("input.data")
-
+for a in b 
+{
+val R = 1000
+val rand = user_define "new Random(42)"
+}
 }
 '''
 #for R in rand { user_define "R=R+1" }
 
 
-yacc.parse(data)
 
+#yacc.parse(data,debug=True)
+yacc.parse(data)
 #"""
 
 
@@ -208,45 +269,46 @@ def p_block_stmt(t):
 
 """
 
-BLOCK_STMT			:	'{' VAR_DECL_INIT STMT_INIT '}'
-					|	'{' VAL_DECL_INIT STMT_INIT '}'
-					;
-STMT_INIT			:	STMT_INIT STMT
-					|
-					;
+BLOCK_STMT          :   '{' VAR_DECL_INIT STMT_INIT '}'
+                    |   '{' VAL_DECL_INIT STMT_INIT '}'
+                    ;
+STMT_INIT           :   STMT_INIT STMT
+                    |
+                    ;
 
 #todo
-STMT				: 
-					;
+STMT                : 
+                    ;
 
 FOR_STMT : FOR ID IN CONTAINER '{' USER_DEFINE_VALUE '}'
          ;
 
-VAR_DECL_INIT		:	VAR_DECL_INIT VAR_DECL
-					|
-					;
+VAR_DECL_INIT       :   VAR_DECL_INIT VAR_DECL
+                    |
+                    ;
 
-VARDECL				:	VAR ID
-					;
+VARDECL             :   VAR ID
+                    ;
 
-VAL_DECL_INIT		:	VAL_DECL_INIT VAL_DECL
-					|
-					;
+VAL_DECL_INIT       :   VAL_DECL_INIT VAL_DECL
+                    |
+                    ;
 
-VAL_DECL			:	VAL ID '=' NUMBER
-					|	VAL ID '=' USER_DEFINE_VALUE
-					;
+VAL_DECL            :   VAL ID '=' NUMBER
+                    |   VAL ID '=' USER_DEFINE_VALUE
+                    ;
 
-USER_DEFINE_VALUE	:	USER_DEFINE STRING
-					;
+USER_DEFINE_VALUE   :   USER_DEFINE STRING
+                    ;
 
 
-RDD_INIT			:	TEXT_FILE '(' PATH ')'
-					:	SEQUENCE_FILE( PATH, CLASS , CLASS)
-					;
+RDD_INIT            :   TEXT_FILE '(' PATH ')'
+                    :   SEQUENCE_FILE( PATH, CLASS , CLASS)
+                    ;
 
-PATH				:	STRING
-CLASS				:	STRING
-OBJECT_ID			:	STRING
+PATH                :   STRING
+CLASS               :   STRING
+OBJECT_ID           :   STRING
+
 
 """

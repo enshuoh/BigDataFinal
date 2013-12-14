@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = '\x80-\x9b3\xa3|<\xf8\xd66\xb9\xdfj\x01\x90v'
+_lr_signature = '\xae\xcb\xd5`t\xd4\xbc\xa9$\xe9\xb5\x19\xe6\x8d\xa5%'
     
-_lr_action_items = {'TEXT_FILE':([12,],[13,]),'RPAREN':([20,],[21,]),'USER_DEFINE':([12,],[14,]),'VAL':([3,4,7,15,16,17,19,21,],[-11,5,-10,-12,-13,-14,-15,-16,]),'EQUALS':([8,],[12,]),'NUMBER':([12,],[15,]),'LPAREN':([13,],[18,]),'LBPAREN':([0,3,4,6,7,9,10,11,15,16,17,19,21,],[3,-11,-4,3,-10,-5,-3,-2,-12,-13,-14,-15,-16,]),'STRING':([14,18,],[19,20,]),'$end':([1,2,11,],[-1,0,-2,]),'ID':([5,],[8,]),'RBPAREN':([3,4,6,7,9,10,11,15,16,17,19,21,],[-11,-4,11,-10,-5,-3,-2,-12,-13,-14,-15,-16,]),}
+_lr_action_items = {'LBRACE':([0,1,4,5,7,8,11,12,13,17,18,21,22,23,25,27,28,29,31,],[1,-8,-13,-4,1,-12,-3,-6,-5,1,-2,-14,-15,-16,-7,-17,-10,-11,-18,]),'RPAREN':([30,],[31,]),'FOR':([1,4,5,7,8,11,12,13,18,21,22,23,25,27,31,],[-8,-13,-4,10,-12,-3,-6,-5,-2,-14,-15,-16,-7,-17,-18,]),'VAL':([1,4,5,8,21,22,23,27,31,],[-8,-13,6,-12,-14,-15,-16,-17,-18,]),'EQUALS':([9,],[15,]),'RBRACE':([1,4,5,7,8,11,12,13,14,18,21,22,23,25,27,31,],[-8,-13,-4,-9,-12,-3,-6,-5,18,-2,-14,-15,-16,-7,-17,-18,]),'NUMBER':([15,],[21,]),'TEXT_FILE':([15,],[19,]),'LPAREN':([19,],[26,]),'IN':([16,],[24,]),'STRING':([20,26,],[27,30,]),'USER_DEFINE':([15,],[20,]),'ID':([6,10,24,],[9,16,29,]),'$end':([2,3,18,],[-1,0,-2,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'BLOCK_STMT':([0,6,],[1,9,]),'VAL_DECL_INIT':([3,],[4,]),'USER_DEFINE_VALUE':([12,],[16,]),'PROGRAM':([0,],[2,]),'STMT':([6,],[10,]),'STMT_INIT':([4,],[6,]),'VAL_DECL':([4,],[7,]),'RDD_INIT':([12,],[17,]),}
+_lr_goto_items = {'VAL_DECL_INIT':([4,],[5,]),'CONTAINER':([24,],[28,]),'USER_DEFINE_VALUE':([15,],[22,]),'BLOCK_STMT':([0,7,17,],[2,13,25,]),'enter_scope':([1,],[4,]),'FOR_STMT':([7,],[12,]),'PROGRAM':([0,],[3,]),'STMT':([7,],[11,]),'STMT_INIT':([5,],[7,]),'exit_scope':([7,],[14,]),'VAL_DECL':([5,],[8,]),'ITERABLE':([10,],[17,]),'RDD_INIT':([15,],[23,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -26,20 +26,22 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> PROGRAM","S'",1,None,None,None),
-  ('PROGRAM -> BLOCK_STMT','PROGRAM',1,'p_program','test.py',101),
-  ('BLOCK_STMT -> LBPAREN VAL_DECL_INIT STMT_INIT RBPAREN','BLOCK_STMT',4,'p_block_stmt','test.py',106),
-  ('STMT_INIT -> STMT_INIT STMT','STMT_INIT',2,'p_statment_init','test.py',112),
-  ('STMT_INIT -> <empty>','STMT_INIT',0,'p_statment_init','test.py',113),
-  ('STMT -> BLOCK_STMT','STMT',1,'p_statment','test.py',118),
-  ('FOR_STMT -> FOR ITERABLE LBPAREN USER_DEFINE_VALUE RBPAREN','FOR_STMT',5,'p_for_lopp','test.py',124),
-  ('FOR_STMT -> <empty>','FOR_STMT',0,'p_for_lopp','test.py',125),
-  ('ITERABLE -> ID IN CONTAINER','ITERABLE',3,'p_iterable','test.py',130),
-  ('CONTAINER -> ID','CONTAINER',1,'p_container','test.py',136),
-  ('VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL','VAL_DECL_INIT',2,'p_val_declare_init','test.py',141),
-  ('VAL_DECL_INIT -> <empty>','VAL_DECL_INIT',0,'p_val_declare_init','test.py',142),
-  ('VAL_DECL -> VAL ID EQUALS NUMBER','VAL_DECL',4,'p_val_declare','test.py',148),
-  ('VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE','VAL_DECL',4,'p_val_declare','test.py',149),
-  ('VAL_DECL -> VAL ID EQUALS RDD_INIT','VAL_DECL',4,'p_val_declare','test.py',150),
-  ('USER_DEFINE_VALUE -> USER_DEFINE STRING','USER_DEFINE_VALUE',2,'p_user_define_value','test.py',157),
-  ('RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN','RDD_INIT',4,'p_rdd_init','test.py',163),
+  ('PROGRAM -> BLOCK_STMT','PROGRAM',1,'p_program','test.py',129),
+  ('BLOCK_STMT -> LBRACE enter_scope VAL_DECL_INIT STMT_INIT exit_scope RBRACE','BLOCK_STMT',6,'p_block_stmt','test.py',135),
+  ('STMT_INIT -> STMT_INIT STMT','STMT_INIT',2,'p_statment_init','test.py',141),
+  ('STMT_INIT -> <empty>','STMT_INIT',0,'p_statment_end','test.py',147),
+  ('STMT -> BLOCK_STMT','STMT',1,'p_statment','test.py',152),
+  ('STMT -> FOR_STMT','STMT',1,'p_statment_for','test.py',158),
+  ('FOR_STMT -> FOR ITERABLE BLOCK_STMT','FOR_STMT',3,'p_for_stmt','test.py',164),
+  ('enter_scope -> <empty>','enter_scope',0,'p_enter_scope','test.py',170),
+  ('exit_scope -> <empty>','exit_scope',0,'p_exit_scope','test.py',177),
+  ('ITERABLE -> ID IN CONTAINER','ITERABLE',3,'p_iterable','test.py',187),
+  ('CONTAINER -> ID','CONTAINER',1,'p_container','test.py',193),
+  ('VAL_DECL_INIT -> VAL_DECL_INIT VAL_DECL','VAL_DECL_INIT',2,'p_val_declare_init','test.py',200),
+  ('VAL_DECL_INIT -> <empty>','VAL_DECL_INIT',0,'p_val_declare_init','test.py',201),
+  ('VAL_DECL -> VAL ID EQUALS NUMBER','VAL_DECL',4,'p_val_declare','test.py',208),
+  ('VAL_DECL -> VAL ID EQUALS USER_DEFINE_VALUE','VAL_DECL',4,'p_val_declare','test.py',209),
+  ('VAL_DECL -> VAL ID EQUALS RDD_INIT','VAL_DECL',4,'p_val_declare','test.py',210),
+  ('USER_DEFINE_VALUE -> USER_DEFINE STRING','USER_DEFINE_VALUE',2,'p_user_define_value','test.py',216),
+  ('RDD_INIT -> TEXT_FILE LPAREN STRING RPAREN','RDD_INIT',4,'p_rdd_init','test.py',222),
 ]
