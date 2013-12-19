@@ -148,22 +148,15 @@ def p_statment_init(p):
 def p_statment_end(p):
     '''
     STMT_INIT : 
-    '''  
+    '''
 
 def p_statment(p):
     '''
     STMT : BLOCK_STMT
-     | FOR_STMT
-     | RDD_STMT
+         | FOR_STMT
     '''
     p[0] = p[1]
-"""
-def p_statment_for(p):
-    '''
-    STMT : FOR_STMT 
-    ''' 
-    p[0] = p[1]
-"""
+
 def p_for_stmt(p):
     '''
     FOR_STMT : FOR ITERABLE BLOCK_STMT
@@ -227,28 +220,6 @@ def p_rdd_init(p):
     RDD_INIT : TEXT_FILE LPAREN STRING RPAREN
     '''
     p[0] = 'sc.textFile("%s")' % p[3][1:-1]
-    
-def p_rdd_stmt(p):
-    '''
-    RDD_STMT : RDD RDD_FUNC_BLOCK END
-    '''
-    p[0] = p[2]
-
-def p_rdd_func_block(p):
-    '''
-    RDD_FUNC_BLOCK : RDD_FUNC_BLOCK RDD_FUNC
-                |
-    '''
-    if len(p)>1:
-        p[0] = p[1] + p[2]
-    else:
-        p[0] = ''
-
-def p_rdd_func(p):
-    '''
-    RDD_FUNC : STRING STRING ID ID
-    '''
-    p[0] = p[4] + " = " + p[3] +'.%s(%s)\n' %(p[1][1:-1],p[2][1:-1])
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
@@ -268,7 +239,7 @@ for a in b
 val R = 1000
 val rand = user_define "new Random(42)"
 }
-rdd
+rdd 
 "map" "abc" tmp1 tmp2
 "map" "abc" tmp1 tmp3
 end
@@ -280,7 +251,6 @@ end
 }
 '''
 #for R in rand { user_define "R=R+1" }
-
 
 
 #yacc.parse(data,debug=True)
@@ -299,6 +269,16 @@ def p_block_stmt(t):
               | '{' VAL_DECL_INIT STMT_INIT '}'
               ;
     """
+
+rdd.map( => )
+rdd.groupByKey
+var = var function_call parameter end
+var varName = expression
+expression : arithmetic_stmt
+           | function_call
+function_call : varName function_name Lparameter Rparmeter
+              | varName user_define String
+
 '''
 
 
