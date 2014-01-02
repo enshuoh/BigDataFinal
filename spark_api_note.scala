@@ -36,10 +36,10 @@ WritableConverters are provided in a somewhat strange way (by an implicit functi
 
 def sequenceFile[K, V](path: String, keyClass: Class[K], valueClass: Class[V]): RDD[(K, V)]
 Get an RDD for a Hadoop SequenceFile with given key and value types.
-
+/*
 def sequenceFile[K, V](path: String, keyClass: Class[K], valueClass: Class[V], minSplits: Int): RDD[(K, V)]
 Get an RDD for a Hadoop SequenceFile with given key and value types.
-
+*/
 def textFile(path: String, minSplits: Int = defaultMinSplits): RDD[String]
 Read a text file from HDFS, a local file system (available on all nodes), or any Hadoop-supported file system URI, and return it as an RDD of Strings.
 
@@ -114,6 +114,8 @@ Reduces the elements of this RDD using the specified commutative and associative
 
 def sample(withReplacement: Boolean, fraction: Double, seed: Int): RDD[T]
 Return a sampled subset of this RDD.
+
+def takeSample(withReplacement: Boolean, num: Int, seed: Int): Array[T] 
 
 def saveAsObjectFile(path: String): Unit
 Save this RDD as a SequenceFile of serialized objects.

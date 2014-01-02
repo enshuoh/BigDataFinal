@@ -9,6 +9,8 @@ reserved = {
     'in' : 'IN',
     'object' : 'OBJECT',
     'val' : 'VAL',
+    'var' : 'VAR',
+
     'new' : 'NEW',
     'user_define' : 'USER_DEFINE',
     'text_file' : 'TEXT_FILE',
@@ -109,20 +111,21 @@ names = { }
 
 
 class Scope:
-    def __init__(self,parent_scope):
-        self.parent_scope = parent_scope
+    def __init__(self,parent_scope_index):
+        self.parent_scope_index = parent_scope_index
+        self.clean()
+
+    def clean(self):
         self.id_table = {}
-        self.val_decl = []
+        self.decl = []
         self.stmt_init = []
         self.rdd_id = ""
-        self.code = ""
-    
+        self.code = ""        
     def append_code(self,code):
         self.code = self.code + code;
 
-
-now_scope = Scope(parent_scope = None)
-
+scope_index = 0
+scope_list = [Scope(parent_scope_index = -1)]
 #to-do have to finish the scope structure
 #to-do change the VAL_DECL_INIT STMT_INIT mechanism
 
@@ -135,15 +138,29 @@ def p_program(p):
 
 def p_block_stmt(p):
     '''
-    BLOCK_STMT : LBRACE enter_scope VAL_DECL_INIT STMT_INIT exit_scope RBRACE 
+    BLOCK_STMT : LBRACE enter_scope DECL_INIT STMT_INIT  RBRACE 
     '''
-    p[0] = now_scope.code
+    global scope_index
+    global scope_list
+    now_scope = scope_list[scope_index]
+    now_scope = scope_list[scope_index]
+    p[0] = '{\n\t' + ''.join(now_scope.decl).replace('\n','\n\t') +'\n' + ''.join(now_scope.stmt_init).replace('\n','\n\t') + '\n}\n'
+    parent_index = now_scope.parent_scope_index
+    scope_list.remove(now_scope)
+    scope_index -= 1
+    now_scope = scope_list[scope_index]
 
+    
 def p_statment_init(p):
     '''
     STMT_INIT : STMT_INIT STMT 
     '''
-    now_scope.stmt_init.append(p[2])
+
+    global scope_index
+    global scope_list
+    now_scope = scope_list[scope_index]
+    now_scope.stmt_init.append('\n'+p[2])
+
 
 def p_statment_end(p):
     '''
@@ -154,7 +171,9 @@ def p_statment(p):
     '''
     STMT : BLOCK_STMT
          | FOR_STMT
+         | WHILE_STMT  
     '''
+#           
     p[0] = p[1]
 
 def p_for_stmt(p):
@@ -163,27 +182,47 @@ def p_for_stmt(p):
     '''
     p[0] = 'for' + '( ' + p[2] + ' )' + p[3]
 
+
+# to-do : expression
+"""
+def p_while_stmt(p):
+    '''
+    WHILE_STMT : WHILE EXPRESSION BLOCK_STMT
+    '''
+
+    p[0] = 'while'+'('+p[2]+')'+p[3]
+"""
+
+def p_while_stmt(p):
+    '''
+    WHILE_STMT : WHILE ID BLOCK_STMT
+    '''
+    p[0] = 'while'+'('+p[2]+')'+p[3]
+
 def p_enter_scope(p):
     '''
     enter_scope :
     '''
-    global now_scope
-    now_scope = Scope(now_scope)
-
+    global scope_index
+    global scope_list
+    scope_list.append(Scope(scope_index))
+    scope_index +=1
+    
 def p_exit_scope(p):
     '''
     exit_scope :
     '''
-    global now_scope
-    now_scope.code = '{\n' + ''.join(now_scope.val_decl) +'\n' + ''.join(now_scope.stmt_init) + '\n}\n'
-    code = now_scope.code
-    now_scope = now_scope.parent_scope
-    now_scope.append_code(code)
+    global scope_index
+    global scope_list
+
 
 def p_iterable(p):
     '''
     ITERABLE : ID IN CONTAINER
     '''
+#   to-do
+#             | CONTAINER   
+
     p[0] = p[1] + ' <- ' + p[3]
 
 def p_container(p):
@@ -191,15 +230,24 @@ def p_container(p):
     CONTAINER : ID
     '''
     p[0] = p[1]
-
-
-
-def p_val_declare_init(p):
-    '''VAL_DECL_INIT : VAL_DECL_INIT VAL_DECL  
-                     |
+def p_declare_init(p):
     '''
+    DECL_INIT : DECL_INIT DECL
+              | 
+    '''
+
     if len(p) > 1 :
-        now_scope.val_decl.append(p[2]+'\n')
+        global scope_index
+        global scope_list
+        now_scope = scope_list[scope_index]
+        now_scope.decl.append(p[2]+'\n')
+
+def p_declare(p):
+    '''
+    DECL : VAL_DECL
+         | VAR_DECL
+    '''
+    p[0] = p[1]
 
 def p_val_declare(p):
     '''
@@ -207,7 +255,15 @@ def p_val_declare(p):
              | VAL ID EQUALS USER_DEFINE_VALUE
              | VAL ID EQUALS RDD_INIT
     '''
-    p[0] = "var "+p[2]+" = "+p[4]
+    p[0] = "val "+p[2]+" = "+p[4]
+
+def p_var_declare(p):
+    '''
+    VAR_DECL : VAR ID EQUALS NUMBER
+             | VAR ID EQUALS USER_DEFINE_VALUE
+             | VAR ID EQUALS RDD_INIT
+    '''
+    p[0] = "var " + p[2] + " = " + p[4]
 
 def p_user_define_value(p):
     '''
@@ -221,6 +277,7 @@ def p_rdd_init(p):
     '''
     p[0] = 'sc.textFile("%s")' % p[3][1:-1]
 
+
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
@@ -231,23 +288,18 @@ yacc.yacc()
 
 data = '''
 {
-val R = 1000
-val rand = user_define "new Random(42)"
-val lines = text_file("input.data")
-for a in b 
-{
-val R = 1000
-val rand = user_define "new Random(42)"
-}
-rdd 
-"map" "abc" tmp1 tmp2
-"map" "abc" tmp1 tmp3
-end
+    val R = 1000
+    var lines = text_file("input.data")
+    val rand = user_define "new Random(42)"
 
-rdd
-"map" "abc" tmp1 tmp2
-"map" "abc" tmp1 tmp3
-end
+    for a in b{
+        val R = 1000
+        val rand = user_define "new Random(42)"
+    }
+
+    while a {
+        val R = 1 
+    }
 }
 '''
 #for R in rand { user_define "R=R+1" }

@@ -1,0 +1,15 @@
+{
+	val R = 1000
+	var lines = sc.textFile("input.data")
+	val rand = new Random(42)
+	
+
+	for( a <- b ){
+		val R = 1000
+		val rand = new Random(42)
+		
+	
+	}
+	
+}
+
