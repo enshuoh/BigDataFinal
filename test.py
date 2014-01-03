@@ -3,8 +3,16 @@ reserved = {
     'if' : 'IF',
     'then' : 'THEN',
     'else' : 'ELSE',
+    'elseif' : 'ELSEIF',
     'while' : 'WHILE',
     'for' : 'FOR',
+
+    'not' : 'NOT',
+    'and' : 'AND',
+    'or' : 'OR',
+    'larger' : 'LARGER',
+    "smaller" : 'SMALLER',
+    "equal" : 'EQUAL',
 
     'in' : 'IN',
     'object' : 'OBJECT',
@@ -21,6 +29,7 @@ reserved = {
 tokens = [
     'ID','NUMBER',
     'PLUS','MINUS','TIMES','DIVIDE','EQUALS',
+
     'LPAREN','RPAREN',
 
     'LBRACE',
@@ -42,6 +51,7 @@ t_MINUS   = r'-'
 t_TIMES   = r'\*'
 t_DIVIDE  = r'/'
 t_EQUALS  = r'='
+
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
 t_LBRACE  = r'\{'
@@ -111,8 +121,8 @@ names = { }
 
 
 class Scope:
-    def __init__(self,parent_scope_index):
-        self.parent_scope_index = parent_scope_index
+    def __init__(self,parent_scope):
+        self.parent_scope = parent_scope
         self.clean()
 
     def clean(self):
@@ -124,8 +134,9 @@ class Scope:
     def append_code(self,code):
         self.code = self.code + code;
 
-scope_index = 0
-scope_list = [Scope(parent_scope_index = -1)]
+scope_now = Scope(parent_scope = None)
+
+
 #to-do have to finish the scope structure
 #to-do change the VAL_DECL_INIT STMT_INIT mechanism
 
@@ -140,26 +151,16 @@ def p_block_stmt(p):
     '''
     BLOCK_STMT : LBRACE enter_scope DECL_INIT STMT_INIT  RBRACE 
     '''
-    global scope_index
-    global scope_list
-    now_scope = scope_list[scope_index]
-    now_scope = scope_list[scope_index]
-    p[0] = '{\n\t' + ''.join(now_scope.decl).replace('\n','\n\t') +'\n' + ''.join(now_scope.stmt_init).replace('\n','\n\t') + '\n}\n'
-    parent_index = now_scope.parent_scope_index
-    scope_list.remove(now_scope)
-    scope_index -= 1
-    now_scope = scope_list[scope_index]
-
+    global scope_now
+    p[0] = '{\n\t' + ''.join(scope_now.decl).replace('\n','\n\t') + ''.join(scope_now.stmt_init).replace('\n','\n\t') + '\n}'
+    scope_now = scope_now.parent_scope
     
 def p_statment_init(p):
     '''
     STMT_INIT : STMT_INIT STMT 
     '''
-
-    global scope_index
-    global scope_list
-    now_scope = scope_list[scope_index]
-    now_scope.stmt_init.append('\n'+p[2])
+    global scope_now
+    scope_now.stmt_init.append('\n'+p[2])
 
 
 def p_statment_end(p):
@@ -171,10 +172,30 @@ def p_statment(p):
     '''
     STMT : BLOCK_STMT
          | FOR_STMT
-         | WHILE_STMT  
+         | WHILE_STMT 
+         | IF_STMT 
+         | ELSE_STMT 
+         | ELSE_IF_STMT 
     '''
-#           
     p[0] = p[1]
+
+def p_if_stmt(p):
+    '''
+    IF_STMT : IF LOGIC_EXPR BLOCK_STMT 
+    ''' 
+    p[0] = 'if' + '(' + p[2] + ')' + p[3]
+
+def p_else_stmt(p): 
+    ''' 
+    ELSE_STMT : ELSE BLOCK_STMT 
+    ''' 
+    p[0] = 'else' + p[2]
+
+def p_else_if_stmt(p): 
+    ''' 
+    ELSE_IF_STMT : ELSEIF LOGIC_EXPR BLOCK_STMT
+    ''' 
+    p[0] = 'else if' + '(' + p[2] + ')' + p[3]
 
 def p_for_stmt(p):
     '''
@@ -183,19 +204,9 @@ def p_for_stmt(p):
     p[0] = 'for' + '( ' + p[2] + ' )' + p[3]
 
 
-# to-do : expression
-"""
 def p_while_stmt(p):
     '''
-    WHILE_STMT : WHILE EXPRESSION BLOCK_STMT
-    '''
-
-    p[0] = 'while'+'('+p[2]+')'+p[3]
-"""
-
-def p_while_stmt(p):
-    '''
-    WHILE_STMT : WHILE ID BLOCK_STMT
+    WHILE_STMT : WHILE LOGIC_EXPR BLOCK_STMT
     '''
     p[0] = 'while'+'('+p[2]+')'+p[3]
 
@@ -203,17 +214,8 @@ def p_enter_scope(p):
     '''
     enter_scope :
     '''
-    global scope_index
-    global scope_list
-    scope_list.append(Scope(scope_index))
-    scope_index +=1
-    
-def p_exit_scope(p):
-    '''
-    exit_scope :
-    '''
-    global scope_index
-    global scope_list
+    global scope_now
+    scope_now = Scope(scope_now)
 
 
 def p_iterable(p):
@@ -230,6 +232,7 @@ def p_container(p):
     CONTAINER : ID
     '''
     p[0] = p[1]
+
 def p_declare_init(p):
     '''
     DECL_INIT : DECL_INIT DECL
@@ -237,10 +240,9 @@ def p_declare_init(p):
     '''
 
     if len(p) > 1 :
-        global scope_index
-        global scope_list
-        now_scope = scope_list[scope_index]
-        now_scope.decl.append(p[2]+'\n')
+        global scope_now
+        scope_now.decl.append(p[2]+'\n')
+
 
 def p_declare(p):
     '''
@@ -281,6 +283,45 @@ def p_rdd_init(p):
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
+def p_logic_expr(p):
+    '''
+    LOGIC_EXPR : ID 
+               | NUMBER
+
+    '''
+    #to-do function call
+    p[0] = p[1]
+
+def p_logic_not_expr(p):
+    '''
+    LOGIC_EXPR : NOT LOGIC_EXPR
+    '''
+    p[0] = '!' + p[2]
+
+def p_logic_op_expr(p):
+    '''
+    LOGIC_EXPR : ID AND LOGIC_EXPR
+               | ID OR LOGIC_EXPR
+               | ID LARGER LOGIC_EXPR
+               | ID EQUAL LOGIC_EXPR
+               | ID SMALLER LOGIC_EXPR
+               | NUMBER AND LOGIC_EXPR
+               | NUMBER OR LOGIC_EXPR
+               | NUMBER LARGER LOGIC_EXPR
+               | NUMBER EQUAL LOGIC_EXPR
+               | NUMBER SMALLER LOGIC_EXPR
+    '''
+    if p[2] == 'and':
+        p[0] = p[1] + '&&' + p[3]
+    elif p[2] == 'or':
+        p[0] = p[1] + '^' + p[3]
+    elif p[2] == 'larger':
+        p[0] = p[1] + '>' + p[3]
+    elif p[2] == 'equal':
+        p[0] = p[1] + '==' + p[3]
+    elif p[2] == 'smaller':
+        p[0] = p[1] + '<' + p[3]
+
 
 
 import ply.yacc as yacc
@@ -297,8 +338,17 @@ data = '''
         val rand = user_define "new Random(42)"
     }
 
-    while a {
+    while a equal 10 and b {
         val R = 1 
+    }
+    if a larger b{
+        var haha = 1
+    }
+    elseif a smaller b{
+        var haha = 2
+    }
+    else{
+        var haha = 3
     }
 }
 '''
@@ -312,7 +362,7 @@ yacc.parse(data)
 
 '''
 def p_object_name(t):
-    'OBJECT : OBJECT_ID BLOCKSTMT'
+    'OBJECT : OBJECT_NUMBER BLOCKSTMT'
     object_name = t[1]
 
 def p_block_stmt(t):
@@ -380,3 +430,16 @@ OBJECT_ID           :   STRING
 
 
 """
+
+'''
+EXPRESSION
+if else
+case data
+function call
+a.function_call
+
+WHILE(a){
+    
+
+}
+'''
