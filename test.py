@@ -1,34 +1,28 @@
 
 reserved = {
     'if' : 'IF',
-    'then' : 'THEN',
     'else' : 'ELSE',
     'elseif' : 'ELSEIF',
     'while' : 'WHILE',
     'for' : 'FOR',
+    'break' : 'BREAK',
+    'continue' : 'CONTINUE',
 
-    'not' : 'NOT',
-    'and' : 'AND',
-    'or' : 'OR',
-    'larger' : 'LARGER',
-    "smaller" : 'SMALLER',
-    "equal" : 'EQUAL',
+
 
     'in' : 'IN',
-    'object' : 'OBJECT',
     'val' : 'VAL',
     'var' : 'VAR',
 
-    'new' : 'NEW',
+    'function':'FUNCTION',
+    'to' : 'TO',
     'user_define' : 'USER_DEFINE',
     'text_file' : 'TEXT_FILE',
-    'sequence_file' : 'SEQUENCE_FILE',
-    'rdd' : 'RDD',
-    'end' : 'END'
 }
 tokens = [
     'ID','NUMBER',
     'PLUS','MINUS','TIMES','DIVIDE','EQUALS',
+    'NOT','AND','OR','LARGER','SMALLER','LOGIC_EQUAL',
 
     'LPAREN','RPAREN',
 
@@ -36,27 +30,28 @@ tokens = [
     'RBRACE',
 
 
-    'TO',
-    'DOT',
     'STRING'
     ]+ list(reserved.values())
 
 
 
 # Tokens
-t_TO = r'=>'
-t_DOT = r'\.'
-t_PLUS    = r'\+'
-t_MINUS   = r'-'
-t_TIMES   = r'\*'
-t_DIVIDE  = r'/'
-t_EQUALS  = r'='
-
-t_LPAREN  = r'\('
-t_RPAREN  = r'\)'
-t_LBRACE  = r'\{'
-t_RBRACE  = r'\}'
-t_NUMBER  = r'[-+]?\d*\.\d+|\d+'
+t_PLUS        = r'\+'
+t_MINUS       = r'-'
+t_TIMES       = r'\*'
+t_DIVIDE      = r'/'
+t_EQUALS      = r'='
+t_NOT         = r'!'
+t_AND         = r'&&'
+t_OR          = r'\|\|'
+t_LARGER      = r'>'
+t_SMALLER     = r'<'
+t_LOGIC_EQUAL = r'=='
+t_LPAREN      = r'\('
+t_RPAREN      = r'\)'
+t_LBRACE      = r'\{'
+t_RBRACE      = r'\}'
+t_NUMBER      = r'[-+]?\d*\.\d+|\d+'
 
 
 t_STRING  = r'\".*?\"'
@@ -87,12 +82,26 @@ lexer = lex.lex()
 """
 
 data = '''
-val R = 1000
-val rand = user_define "new Random(42)"
-val K = 10
-val converge_dist = 0.1
-val lines = text_file("input.data")
-for R in rand { user_define "R=R+1" }
+{
+    val R = 1000
+    val rand = user_define "new Random(42)"
+    
+    var lines = text_file "input.data"
+    val data = lines function map line to function parseVector "line,' '"
+    
+    var kPoints = data function takeSample "false,K,42"
+    var tempDist = 1.0
+
+
+    while tempDist > convergeDist {
+        var closest = data function map p to ( function closestPoint "p, kPoints" ( 1 p ) )
+        var pointStats = closest function reduceByKey ((x1 y1)  (x2 y2)) to ( x1+x2  y1+y2 )
+        var newPoint = pointStats function map pair to (pair_1 par_2/pair_2_2)
+        var newPointArray =  newPoint function collectAsMap
+        tempDist = 0.0
+
+    }
+}
 '''
 
 # Give the lexer some input
@@ -123,19 +132,24 @@ names = { }
 class Scope:
     def __init__(self,parent_scope):
         self.parent_scope = parent_scope
-        self.clean()
-
-    def clean(self):
-        self.id_table = {}
+        #self.id_table = {}
         self.decl = []
         self.stmt_init = []
-        self.rdd_id = ""
-        self.code = ""        
+        #self.rdd_id = ""
+        self.code = ""  
     def append_code(self,code):
         self.code = self.code + code;
 
-scope_now = Scope(parent_scope = None)
+scope_now = Scope(None)
 
+class Tuple:
+    def __init__(self,parent_tuple):
+        self.parent_tuple = parent_tuple
+        self.element_list = []
+    def append(self,element):
+        self.element_list.append(element)
+
+tuple_now = Tuple(None)
 
 #to-do have to finish the scope structure
 #to-do change the VAL_DECL_INIT STMT_INIT mechanism
@@ -175,13 +189,19 @@ def p_statment(p):
          | WHILE_STMT 
          | IF_STMT 
          | ELSE_STMT 
-         | ELSE_IF_STMT 
+         | ELSE_IF_STMT
+         | BREAK
+         | CONTINUE 
     '''
     p[0] = p[1]
-
+def p_statment_2(p):
+    '''
+    STMT : ID EQUALS EXPR
+    '''
+    p[0] = p[1] + p[2] + p[3]
 def p_if_stmt(p):
     '''
-    IF_STMT : IF LOGIC_EXPR BLOCK_STMT 
+    IF_STMT : IF EXPR BLOCK_STMT 
     ''' 
     p[0] = 'if' + '(' + p[2] + ')' + p[3]
 
@@ -193,7 +213,7 @@ def p_else_stmt(p):
 
 def p_else_if_stmt(p): 
     ''' 
-    ELSE_IF_STMT : ELSEIF LOGIC_EXPR BLOCK_STMT
+    ELSE_IF_STMT : ELSEIF EXPR BLOCK_STMT
     ''' 
     p[0] = 'else if' + '(' + p[2] + ')' + p[3]
 
@@ -206,7 +226,7 @@ def p_for_stmt(p):
 
 def p_while_stmt(p):
     '''
-    WHILE_STMT : WHILE LOGIC_EXPR BLOCK_STMT
+    WHILE_STMT : WHILE EXPR BLOCK_STMT
     '''
     p[0] = 'while'+'('+p[2]+')'+p[3]
 
@@ -253,17 +273,15 @@ def p_declare(p):
 
 def p_val_declare(p):
     '''
-    VAL_DECL : VAL ID EQUALS NUMBER
+    VAL_DECL : VAL ID EQUALS EXPR
              | VAL ID EQUALS USER_DEFINE_VALUE
-             | VAL ID EQUALS RDD_INIT
     '''
     p[0] = "val "+p[2]+" = "+p[4]
 
 def p_var_declare(p):
     '''
-    VAR_DECL : VAR ID EQUALS NUMBER
+    VAR_DECL : VAR ID EQUALS EXPR
              | VAR ID EQUALS USER_DEFINE_VALUE
-             | VAR ID EQUALS RDD_INIT
     '''
     p[0] = "var " + p[2] + " = " + p[4]
 
@@ -275,53 +293,96 @@ def p_user_define_value(p):
 
 def p_rdd_init(p):
     '''
-    RDD_INIT : TEXT_FILE LPAREN STRING RPAREN
+    RDD_INIT : TEXT_FILE  STRING 
     '''
-    p[0] = 'sc.textFile("%s")' % p[3][1:-1]
+    p[0] = 'sc.textFile("%s")' % p[2][1:-1]
 
 
 def p_error(p):
     print("Syntax error at '%s'" % p.value)
 
-def p_logic_expr(p):
+def p_expr(p):
     '''
-    LOGIC_EXPR : ID 
-               | NUMBER
+    EXPR : ID 
+         | NUMBER
+         | RDD_INIT
+         | FUNCTION_CALL
 
     '''
-    #to-do function call
+    #to-do 
     p[0] = p[1]
+def p_expr_tuple(p):
+    '''
+    EXPR : LPAREN enter_tuple TUPLE_INIT RPAREN
+    '''
+    global tuple_now
 
-def p_logic_not_expr(p):
+    p[0] = p[1] + ",".join(tuple_now.element_list)+p[4]
+    tuple_now = tuple_now.parent_tuple
+
+def p_enter_tuple(p):
     '''
-    LOGIC_EXPR : NOT LOGIC_EXPR
+    enter_tuple :
     '''
-    p[0] = '!' + p[2]
+    global tuple_now
+    tuple_now = Tuple(tuple_now)
+
+def p_tuple_init(p):
+    '''
+    TUPLE_INIT : TUPLE_INIT EXPR
+               |
+    '''
+    global tuple_now
+    if len(p) > 1:
+        tuple_now.append(p[2])
+
+def p_function_call(p):
+    '''
+    FUNCTION_CALL : FUNCTION ID PARAMETER
+    '''
+    p[0] = p[2]+"("+p[3]+")"
+
+def p_object_function_call(p):
+    '''
+    FUNCTION_CALL : ID FUNCTION ID PARAMETER
+    '''
+    p[0] = p[1]+"."+p[3]+"("+p[4]+")"
+
+def p_parameter(p):
+    '''
+    PARAMETER : STRING
+    '''
+    p[0] = p[1][1:-1]
+    #no parameter => pass ""
+
+def p_parameter_2(p):
+    '''
+    PARAMETER : EXPR TO EXPR
+    '''
+    p[0] = p[1] + " => " + p[3]
+def p_prefix_expr(p):
+    '''
+    EXPR : NOT EXPR
+         | MINUS EXPR
+    '''
+
+    p[0] = p[1] + p[2]
 
 def p_logic_op_expr(p):
     '''
-    LOGIC_EXPR : ID AND LOGIC_EXPR
-               | ID OR LOGIC_EXPR
-               | ID LARGER LOGIC_EXPR
-               | ID EQUAL LOGIC_EXPR
-               | ID SMALLER LOGIC_EXPR
-               | NUMBER AND LOGIC_EXPR
-               | NUMBER OR LOGIC_EXPR
-               | NUMBER LARGER LOGIC_EXPR
-               | NUMBER EQUAL LOGIC_EXPR
-               | NUMBER SMALLER LOGIC_EXPR
+    EXPR : EXPR AND EXPR
+         | EXPR OR EXPR
+         | EXPR LARGER EXPR
+         | EXPR LOGIC_EQUAL EXPR
+         | EXPR SMALLER EXPR
+         | EXPR PLUS EXPR
+         | EXPR MINUS EXPR
+         | EXPR TIMES EXPR
+         | EXPR DIVIDE EXPR
+         
     '''
-    if p[2] == 'and':
-        p[0] = p[1] + '&&' + p[3]
-    elif p[2] == 'or':
-        p[0] = p[1] + '^' + p[3]
-    elif p[2] == 'larger':
-        p[0] = p[1] + '>' + p[3]
-    elif p[2] == 'equal':
-        p[0] = p[1] + '==' + p[3]
-    elif p[2] == 'smaller':
-        p[0] = p[1] + '<' + p[3]
 
+    p[0] = p[1] + " " + p[2] + " " + p[3]
 
 
 import ply.yacc as yacc
@@ -330,27 +391,37 @@ yacc.yacc()
 data = '''
 {
     val R = 1000
-    var lines = text_file("input.data")
     val rand = user_define "new Random(42)"
+    
+    var lines = text_file "input.data"
+    val data = lines function map line to function parseVector "line,' '"
+    
+    var kPoints = data function takeSample "false,K,42"
+    var tempDist = 1.0
 
-    for a in b{
-        val R = 1000
-        val rand = user_define "new Random(42)"
-    }
 
-    while a equal 10 and b {
-        val R = 1 
-    }
-    if a larger b{
-        var haha = 1
-    }
-    elseif a smaller b{
-        var haha = 2
-    }
-    else{
-        var haha = 3
+    while tempDist > convergeDist {
+        var closest = data function map p to ( function closestPoint "p, kPoints" ( 1 p ) )
+        var pointStats = closest function reduceByKey ((x1 y1)  (x2 y2)) to ( x1+x2  y1+y2 )
+        var newPoint = pointStats function map pair to (pair_1 par_2/pair_2_2)
+        var newPointArray =  newPoint function collectAsMap ""
+
+        tempDist = 0.0
+        for point in kPoints {
+            tempDist = tempDist + point function squaredDist "newPoint"
+
+        }
+        for newP in newPoint {
+            kPoints  = newP_2
+        }
+
     }
 }
+'''
+'''
+
+
+
 '''
 #for R in rand { user_define "R=R+1" }
 
@@ -361,7 +432,7 @@ yacc.parse(data)
 
 
 '''
-def p_object_name(t):
+#def p_object_name(t):
     'OBJECT : OBJECT_NUMBER BLOCKSTMT'
     object_name = t[1]
 
@@ -385,61 +456,7 @@ function_call : varName function_name Lparameter Rparmeter
 
 
 
-"""
-
-BLOCK_STMT          :   '{' VAR_DECL_INIT STMT_INIT '}'
-                    |   '{' VAL_DECL_INIT STMT_INIT '}'
-                    ;
-STMT_INIT           :   STMT_INIT STMT
-                    |
-                    ;
-
-#todo
-STMT                : 
-                    ;
-
-FOR_STMT : FOR ID IN CONTAINER '{' USER_DEFINE_VALUE '}'
-         ;
-
-VAR_DECL_INIT       :   VAR_DECL_INIT VAR_DECL
-                    |
-                    ;
-
-VARDECL             :   VAR ID
-                    ;
-
-VAL_DECL_INIT       :   VAL_DECL_INIT VAL_DECL
-                    |
-                    ;
-
-VAL_DECL            :   VAL ID '=' NUMBER
-                    |   VAL ID '=' USER_DEFINE_VALUE
-                    ;
-
-USER_DEFINE_VALUE   :   USER_DEFINE STRING
-                    ;
-
-
-RDD_INIT            :   TEXT_FILE '(' PATH ')'
-                    :   SEQUENCE_FILE( PATH, CLASS , CLASS)
-                    ;
-
-PATH                :   STRING
-CLASS               :   STRING
-OBJECT_ID           :   STRING
-
-
-"""
 
 '''
-EXPRESSION
-if else
-case data
-function call
-a.function_call
 
-WHILE(a){
-    
-
-}
 '''
