@@ -1,2 +1,4 @@
 *.pyc
 parsetab.py
+getData/*.txt
+getData/tmp_data/*
